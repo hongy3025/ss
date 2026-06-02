@@ -117,3 +117,30 @@ func TestSortEntries(t *testing.T) {
 		t.Errorf("sorted[2].Alias = %q, want staging", sorted[2].Alias)
 	}
 }
+
+func TestClean(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mru.json")
+	store := New(path)
+
+	store.Record("dev")
+	store.Record("prod")
+	store.Record("old-server")
+
+	validAliases := map[string]bool{
+		"dev":  true,
+		"prod": true,
+	}
+
+	store.Clean(validAliases)
+
+	mru := store.(*MRU)
+	if _, ok := mru.Entries["dev"]; !ok {
+		t.Error("dev should exist")
+	}
+	if _, ok := mru.Entries["prod"]; !ok {
+		t.Error("prod should exist")
+	}
+	if _, ok := mru.Entries["old-server"]; ok {
+		t.Error("old-server should be cleaned")
+	}
+}

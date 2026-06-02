@@ -90,5 +90,9 @@ func (m *MRU) SortEntries(entries []parser.HostEntry) []parser.HostEntry {
 }
 
 func (m *MRU) Clean(validAliases map[string]bool) {
-	// TODO: implement in next task
+	for alias := range m.Entries {
+		if !validAliases[alias] {
+			delete(m.Entries, alias)
+		}
+	}
 }
