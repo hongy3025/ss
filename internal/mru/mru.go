@@ -45,7 +45,7 @@ func (m *MRU) Load() error {
 
 	var loaded MRU
 	if err := json.Unmarshal(data, &loaded); err != nil {
-		return nil
+		return err
 	}
 	m.Entries = loaded.Entries
 	return nil

@@ -1,6 +1,7 @@
 package mru
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -51,5 +52,17 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 	if time.Since(entry.LastUsed) > time.Minute {
 		t.Errorf("LastUsed is too old: %v", entry.LastUsed)
+	}
+}
+
+func TestLoad_InvalidJSON(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mru.json")
+	if err := os.WriteFile(path, []byte("invalid json"), 0644); err != nil {
+		t.Fatalf("Failed to write invalid JSON: %v", err)
+	}
+
+	store := New(path)
+	if err := store.Load(); err == nil {
+		t.Fatal("Load() expected error for invalid JSON, got nil")
 	}
 }
