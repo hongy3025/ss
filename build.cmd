@@ -1,0 +1,1 @@
+go build -o ss.exe ./cmd/ss
