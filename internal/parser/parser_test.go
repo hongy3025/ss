@@ -99,6 +99,95 @@ Host prod
 	}
 }
 
+func TestParse_CommentsAndBlankLines(t *testing.T) {
+	input := `# this is a comment
+# another comment
+
+Host dev
+    # inline comment in block
+    HostName 10.0.0.1
+
+    User root
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("Parse() returned %d entries, want 1", len(entries))
+	}
+	if entries[0].User != "root" {
+		t.Errorf("User = %q, want root", entries[0].User)
+	}
+}
+
+func TestParse_SkipWildcardHosts(t *testing.T) {
+	input := `Host *
+    User root
+
+Host dev
+    HostName 10.0.0.1
+
+Host *.example.com
+    User deploy
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("Parse() returned %d entries, want 1", len(entries))
+	}
+	if entries[0].Alias != "dev" {
+		t.Errorf("Alias = %q, want dev", entries[0].Alias)
+	}
+}
+
+func TestParse_MultiplePatterns(t *testing.T) {
+	input := `Host dev prod
+    HostName 10.0.0.1
+    User root
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("Parse() returned %d entries, want 2", len(entries))
+	}
+	if entries[0].Alias != "dev" {
+		t.Errorf("entries[0].Alias = %q, want dev", entries[0].Alias)
+	}
+	if entries[1].Alias != "prod" {
+		t.Errorf("entries[1].Alias = %q, want prod", entries[1].Alias)
+	}
+	if entries[0].HostName != "10.0.0.1" || entries[1].HostName != "10.0.0.1" {
+		t.Errorf("HostName not shared: %+v", entries)
+	}
+	if entries[0].User != "root" || entries[1].User != "root" {
+		t.Errorf("User not shared: %+v", entries)
+	}
+}
+
+func TestParse_MultiplePatternsWithWildcard(t *testing.T) {
+	input := `Host dev * prod staging
+    HostName 10.0.0.1
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 3 {
+		t.Fatalf("Parse() returned %d entries, want 3", len(entries))
+	}
+	wantAliases := []string{"dev", "prod", "staging"}
+	for i, want := range wantAliases {
+		if entries[i].Alias != want {
+			t.Errorf("entries[%d].Alias = %q, want %q", i, entries[i].Alias, want)
+		}
+	}
+}
+
 func TestDefaultConfigPath(t *testing.T) {
 	got, err := DefaultConfigPath()
 	if err != nil {

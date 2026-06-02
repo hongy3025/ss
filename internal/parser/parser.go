@@ -44,7 +44,7 @@ func DefaultConfigPath() (string, error) {
 // Parse parses SSH config content and returns all valid HostEntry blocks.
 func Parse(content string) ([]HostEntry, error) {
 	var entries []HostEntry
-	var current *HostEntry
+	var currentEntries []*HostEntry
 
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
@@ -61,33 +61,36 @@ func Parse(content string) ([]HostEntry, error) {
 
 		switch key {
 		case "Host":
-			if current != nil {
-				entries = append(entries, *current)
+			for _, e := range currentEntries {
+				entries = append(entries, *e)
 			}
-			alias := value
-			if strings.ContainsAny(alias, "*?") {
-				current = nil
-				continue
+			currentEntries = nil
+			for _, alias := range strings.Fields(value) {
+				if strings.ContainsAny(alias, "*?") {
+					continue
+				}
+				currentEntries = append(currentEntries, &HostEntry{Alias: alias})
 			}
-			current = &HostEntry{Alias: alias}
 		default:
-			if current == nil {
+			if len(currentEntries) == 0 {
 				continue
 			}
-			switch key {
-			case "HostName":
-				current.HostName = value
-			case "User":
-				current.User = value
-			case "Port":
-				current.Port = value
-			case "IdentityFile":
-				current.IdentityFile = value
+			for _, e := range currentEntries {
+				switch key {
+				case "HostName":
+					e.HostName = value
+				case "User":
+					e.User = value
+				case "Port":
+					e.Port = value
+				case "IdentityFile":
+					e.IdentityFile = value
+				}
 			}
 		}
 	}
-	if current != nil {
-		entries = append(entries, *current)
+	for _, e := range currentEntries {
+		entries = append(entries, *e)
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
