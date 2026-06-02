@@ -61,3 +61,55 @@ func TestDefaultConfigPath(t *testing.T) {
 		t.Errorf("DefaultConfigPath() = %q, want %q", got, want)
 	}
 }
+
+func TestParse_BasicHostBlock(t *testing.T) {
+	input := `Host dev
+    HostName 10.0.0.1
+    User root
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("Parse() returned %d entries, want 1", len(entries))
+	}
+	got := entries[0]
+	want := HostEntry{
+		Alias:        "dev",
+		HostName:     "10.0.0.1",
+		User:         "root",
+		Port:         "22",
+		IdentityFile: "~/.ssh/id_ed25519",
+	}
+	if got != want {
+		t.Errorf("Parse() entry = %+v, want %+v", got, want)
+	}
+}
+
+func TestParse_MultipleHosts(t *testing.T) {
+	input := `Host dev
+    HostName 10.0.0.1
+    User root
+
+Host prod
+    HostName prod.example.com
+    User deploy
+    Port 2222
+`
+	entries, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("Parse() returned %d entries, want 2", len(entries))
+	}
+	if entries[0].Alias != "dev" || entries[0].HostName != "10.0.0.1" {
+		t.Errorf("entries[0] = %+v", entries[0])
+	}
+	if entries[1].Alias != "prod" || entries[1].Port != "2222" {
+		t.Errorf("entries[1] = %+v", entries[1])
+	}
+}

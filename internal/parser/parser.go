@@ -3,6 +3,7 @@ package parser
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type HostEntry struct {
@@ -37,4 +38,49 @@ func DefaultConfigPath() (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, ".ssh", "config"), nil
+}
+
+func Parse(input string) ([]HostEntry, error) {
+	var entries []HostEntry
+	var current *HostEntry
+
+	lines := strings.Split(input, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		key := fields[0]
+		value := strings.Join(fields[1:], " ")
+
+		switch key {
+		case "Host":
+			if current != nil {
+				entries = append(entries, *current)
+			}
+			current = &HostEntry{Alias: value}
+		default:
+			if current == nil {
+				continue
+			}
+			switch key {
+			case "HostName":
+				current.HostName = value
+			case "User":
+				current.User = value
+			case "Port":
+				current.Port = value
+			case "IdentityFile":
+				current.IdentityFile = value
+			}
+		}
+	}
+	if current != nil {
+		entries = append(entries, *current)
+	}
+	return entries, nil
 }
