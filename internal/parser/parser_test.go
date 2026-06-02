@@ -1,6 +1,10 @@
 package parser
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestHostEntry_Display(t *testing.T) {
 	tests := []struct {
@@ -40,5 +44,17 @@ func TestHostEntry_Display(t *testing.T) {
 				t.Errorf("Display() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestDefaultConfigPath(t *testing.T) {
+	got, err := DefaultConfigPath()
+	if err != nil {
+		t.Fatalf("DefaultConfigPath() error = %v", err)
+	}
+	home, _ := os.UserHomeDir()
+	want := filepath.Join(home, ".ssh", "config")
+	if got != want {
+		t.Errorf("DefaultConfigPath() = %q, want %q", got, want)
 	}
 }
