@@ -11,7 +11,7 @@ import (
 var ErrAbort = errors.New("user aborted selection")
 
 type Provider interface {
-	Find(entries []parser.HostEntry) (parser.HostEntry, error)
+	Find(entries []parser.HostEntry, lastSelectedAlias string) (parser.HostEntry, error)
 }
 
 type FuzzyFinderProvider struct{}
@@ -20,10 +20,19 @@ func NewFuzzyFinderProvider() *FuzzyFinderProvider {
 	return &FuzzyFinderProvider{}
 }
 
-func (p *FuzzyFinderProvider) Find(entries []parser.HostEntry) (parser.HostEntry, error) {
+func (p *FuzzyFinderProvider) Find(entries []parser.HostEntry, lastSelectedAlias string) (parser.HostEntry, error) {
+	opts := []fuzzyfinder.Option{}
+
+	if lastSelectedAlias != "" {
+		opts = append(opts, fuzzyfinder.WithPreselected(func(i int) bool {
+			return entries[i].Alias == lastSelectedAlias
+		}))
+	}
+
 	idx, err := fuzzyfinder.Find(
 		entries,
 		func(i int) string { return entries[i].Display() },
+		opts...,
 	)
 	if err != nil {
 		if errors.Is(err, fuzzyfinder.ErrAbort) {
