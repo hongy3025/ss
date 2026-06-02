@@ -52,7 +52,10 @@ func TestDefaultConfigPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("DefaultConfigPath() error = %v", err)
 	}
-	home, _ := os.UserHomeDir()
+	home, homeErr := os.UserHomeDir()
+	if homeErr != nil {
+		t.Fatalf("os.UserHomeDir() error = %v", homeErr)
+	}
 	want := filepath.Join(home, ".ssh", "config")
 	if got != want {
 		t.Errorf("DefaultConfigPath() = %q, want %q", got, want)

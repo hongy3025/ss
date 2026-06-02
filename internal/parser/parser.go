@@ -28,6 +28,9 @@ func (h HostEntry) Display() string {
 	return h.Alias + " → " + target
 }
 
+// DefaultConfigPath returns the default OpenSSH client configuration path,
+// $HOME/.ssh/config, on the current platform. It returns an error if the
+// user's home directory cannot be determined.
 func DefaultConfigPath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
