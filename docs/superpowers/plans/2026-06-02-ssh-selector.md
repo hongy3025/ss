@@ -147,7 +147,7 @@ func TestHostEntry_Display(t *testing.T) {
         {
             name:  "only alias",
             entry: HostEntry{Alias: "dev"},
-            want:  "dev",
+            want:  "dev → dev",
         },
     }
     for _, tt := range tests {

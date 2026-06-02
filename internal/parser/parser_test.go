@@ -47,21 +47,6 @@ func TestHostEntry_Display(t *testing.T) {
 	}
 }
 
-func TestDefaultConfigPath(t *testing.T) {
-	got, err := DefaultConfigPath()
-	if err != nil {
-		t.Fatalf("DefaultConfigPath() error = %v", err)
-	}
-	home, homeErr := os.UserHomeDir()
-	if homeErr != nil {
-		t.Fatalf("os.UserHomeDir() error = %v", homeErr)
-	}
-	want := filepath.Join(home, ".ssh", "config")
-	if got != want {
-		t.Errorf("DefaultConfigPath() = %q, want %q", got, want)
-	}
-}
-
 func TestParse_BasicHostBlock(t *testing.T) {
 	input := `Host dev
     HostName 10.0.0.1
@@ -111,5 +96,20 @@ Host prod
 	}
 	if entries[1].Alias != "prod" || entries[1].Port != "2222" {
 		t.Errorf("entries[1] = %+v", entries[1])
+	}
+}
+
+func TestDefaultConfigPath(t *testing.T) {
+	got, err := DefaultConfigPath()
+	if err != nil {
+		t.Fatalf("DefaultConfigPath() error = %v", err)
+	}
+	home, homeErr := os.UserHomeDir()
+	if homeErr != nil {
+		t.Fatalf("os.UserHomeDir() error = %v", homeErr)
+	}
+	want := filepath.Join(home, ".ssh", "config")
+	if got != want {
+		t.Errorf("DefaultConfigPath() = %q, want %q", got, want)
 	}
 }

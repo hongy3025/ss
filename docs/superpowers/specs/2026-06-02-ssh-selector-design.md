@@ -72,7 +72,8 @@ type HostEntry struct {
 }
 
 // Display 拼成 "alias → user@host:port" 形式。
-// 缺字段时优雅降级：缺 Port 则省 ":port"；缺 User 则省 "user@"；缺 HostName 则用 Alias。
+// 缺字段时优雅降级：缺 Port 则省 ":port"；缺 User 则省 "user@"；缺 HostName 则用 Alias 兜底（此时 target == alias，结果为 "alias → alias"）。
+// "alias →" 是固定前缀，始终存在。
 func (h HostEntry) Display() string
 ```
 

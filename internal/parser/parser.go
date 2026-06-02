@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bufio"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,13 +41,14 @@ func DefaultConfigPath() (string, error) {
 	return filepath.Join(home, ".ssh", "config"), nil
 }
 
-func Parse(input string) ([]HostEntry, error) {
+// Parse parses SSH config content and returns all valid HostEntry blocks.
+func Parse(content string) ([]HostEntry, error) {
 	var entries []HostEntry
 	var current *HostEntry
 
-	lines := strings.Split(input, "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -62,7 +64,12 @@ func Parse(input string) ([]HostEntry, error) {
 			if current != nil {
 				entries = append(entries, *current)
 			}
-			current = &HostEntry{Alias: value}
+			alias := value
+			if strings.ContainsAny(alias, "*?") {
+				current = nil
+				continue
+			}
+			current = &HostEntry{Alias: alias}
 		default:
 			if current == nil {
 				continue
@@ -81,6 +88,9 @@ func Parse(input string) ([]HostEntry, error) {
 	}
 	if current != nil {
 		entries = append(entries, *current)
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
 	}
 	return entries, nil
 }
