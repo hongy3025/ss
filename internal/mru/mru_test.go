@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/hongy3025/ss/internal/parser"
 )
 
 func TestNew(t *testing.T) {
@@ -55,6 +57,26 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 }
 
+func TestRecord(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mru.json")
+	store := New(path)
+
+	// 第一次记录
+	store.Record("dev")
+	mru := store.(*MRU)
+	entry := mru.Entries["dev"]
+	if entry.Count != 1 {
+		t.Errorf("Count = %d, want 1", entry.Count)
+	}
+
+	// 第二次记录
+	store.Record("dev")
+	entry = mru.Entries["dev"]
+	if entry.Count != 2 {
+		t.Errorf("Count = %d, want 2", entry.Count)
+	}
+}
+
 func TestLoad_InvalidJSON(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "mru.json")
 	if err := os.WriteFile(path, []byte("invalid json"), 0644); err != nil {
@@ -64,5 +86,34 @@ func TestLoad_InvalidJSON(t *testing.T) {
 	store := New(path)
 	if err := store.Load(); err == nil {
 		t.Fatal("Load() expected error for invalid JSON, got nil")
+	}
+}
+
+func TestSortEntries(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mru.json")
+	store := New(path)
+
+	// 记录使用顺序：prod 先用，dev 后用
+	store.Record("prod")
+	time.Sleep(10 * time.Millisecond)
+	store.Record("dev")
+
+	entries := []parser.HostEntry{
+		{Alias: "prod"},
+		{Alias: "staging"},
+		{Alias: "dev"},
+	}
+
+	sorted := store.SortEntries(entries)
+
+	// 最近使用的应该排最前
+	if sorted[0].Alias != "dev" {
+		t.Errorf("sorted[0].Alias = %q, want dev", sorted[0].Alias)
+	}
+	if sorted[1].Alias != "prod" {
+		t.Errorf("sorted[1].Alias = %q, want prod", sorted[1].Alias)
+	}
+	if sorted[2].Alias != "staging" {
+		t.Errorf("sorted[2].Alias = %q, want staging", sorted[2].Alias)
 	}
 }

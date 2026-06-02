@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/hongy3025/ss/internal/parser"
@@ -72,8 +73,20 @@ func (m *MRU) Record(alias string) {
 }
 
 func (m *MRU) SortEntries(entries []parser.HostEntry) []parser.HostEntry {
-	// TODO: implement in next task
-	return entries
+	var withMRU, withoutMRU []parser.HostEntry
+	for _, e := range entries {
+		if _, ok := m.Entries[e.Alias]; ok {
+			withMRU = append(withMRU, e)
+		} else {
+			withoutMRU = append(withoutMRU, e)
+		}
+	}
+
+	sort.Slice(withMRU, func(i, j int) bool {
+		return m.Entries[withMRU[i].Alias].LastUsed.After(m.Entries[withMRU[j].Alias].LastUsed)
+	})
+
+	return append(withMRU, withoutMRU...)
 }
 
 func (m *MRU) Clean(validAliases map[string]bool) {
