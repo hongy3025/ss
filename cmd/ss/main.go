@@ -17,6 +17,13 @@ func main() {
 }
 
 func run(args []string, stdout, stderr *os.File) int {
+	keepMode := false
+	for _, arg := range args {
+		if arg == "-k" || arg == "--keep" {
+			keepMode = true
+		}
+	}
+
 	configPath, err := parser.DefaultConfigPath()
 	if err != nil {
 		fmt.Fprintln(stderr, "ss:", err)
@@ -75,6 +82,10 @@ func run(args []string, stdout, stderr *os.File) int {
 		if err := conn.Connect(entry); err != nil {
 			fmt.Fprintln(stderr, "ss:", err)
 			return 1
+		}
+
+		if !keepMode {
+			return 0
 		}
 
 		lastSelectedAlias = entry.Alias
