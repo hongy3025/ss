@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/hongy3025/ss/internal/connector"
@@ -15,6 +16,8 @@ import (
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
+
+const editConfigAlias = "[edit config]"
 
 func run(args []string, stdout, stderr *os.File) int {
 	keepMode := false
@@ -64,6 +67,9 @@ func run(args []string, stdout, stderr *os.File) int {
 
 		sortedEntries := mruStore.SortEntries(entries)
 
+		editEntry := parser.HostEntry{Alias: editConfigAlias, HostName: "Edit SSH config with VS Code"}
+		sortedEntries = append(sortedEntries, editEntry)
+
 		entry, err := sel.Find(sortedEntries, lastSelectedAlias)
 		if err != nil {
 			if errors.Is(err, selector.ErrAbort) {
@@ -71,6 +77,15 @@ func run(args []string, stdout, stderr *os.File) int {
 			}
 			fmt.Fprintln(stderr, "ss:", err)
 			return 1
+		}
+
+		if entry.Alias == editConfigAlias {
+			cmd := exec.Command("code", configPath)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			cmd.Run()
+			return 0
 		}
 
 		mruStore.Record(entry.Alias)
