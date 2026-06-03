@@ -2,11 +2,12 @@ module github.com/hongy3025/ss
 
 go 1.26.2
 
+require github.com/ktr0731/go-fuzzyfinder v0.9.0
+
 require (
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.6.0 // indirect
 	github.com/ktr0731/go-ansisgr v0.1.0 // indirect
-	github.com/ktr0731/go-fuzzyfinder v0.9.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/nsf/termbox-go v1.1.1 // indirect
@@ -16,3 +17,5 @@ require (
 	golang.org/x/term v0.31.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 )
+
+replace github.com/ktr0731/go-fuzzyfinder v0.9.0 => ./third_party/go-fuzzyfinder
