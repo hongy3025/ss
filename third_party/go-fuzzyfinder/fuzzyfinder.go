@@ -270,9 +270,10 @@ func (f *finder) _draw() {
 			break
 		}
 		if i == f.state.cursorY {
+			selBg := tcell.NewRGBColor(40, 40, 45)
 			style := tcell.StyleDefault.
 				Foreground(tcell.ColorRed).
-				Background(tcell.ColorBlack)
+				Background(selBg)
 
 			f.term.SetContent(0, maxHeight-1-i, '>', nil, style)
 			f.term.SetContent(1, maxHeight-1-i, ' ', nil, style)
@@ -280,9 +281,10 @@ func (f *finder) _draw() {
 
 		if f.opt.multi {
 			if _, ok := f.state.selection[m.Idx]; ok {
+				selBg := tcell.NewRGBColor(40, 40, 45)
 				style := tcell.StyleDefault.
 					Foreground(tcell.ColorRed).
-					Background(tcell.ColorBlack)
+					Background(selBg)
 
 				f.term.SetContent(1, maxHeight-1-i, '>', nil, style)
 			}
@@ -309,16 +311,16 @@ func (f *finder) _draw() {
 				}
 			}
 			if i == f.state.cursorY {
+				selBg := tcell.NewRGBColor(40, 40, 45)
 				if hasHighlighted {
 					style = tcell.StyleDefault.
-						Foreground(tcell.ColorDarkCyan).
+						Foreground(tcell.ColorGreen).
 						Bold(true).
-						Background(tcell.ColorBlack)
+						Background(selBg)
 				} else {
 					style = tcell.StyleDefault.
-						Foreground(tcell.ColorYellow).
-						Bold(true).
-						Background(tcell.ColorBlack)
+						Foreground(tcell.ColorDefault).
+						Background(selBg)
 				}
 			}
 
