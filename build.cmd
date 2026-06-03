@@ -7,7 +7,7 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 where upx >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo Compressing ss.exe with UPX...
-    upx --best ss.exe
+    upx --best -q ss.exe
     if %ERRORLEVEL% neq 0 (
         echo Warning: UPX compression failed, using uncompressed binary.
     )
